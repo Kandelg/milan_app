@@ -33,6 +33,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   final CardSwiperController _swiperController = CardSwiperController();
 
   bool _swiping = false;
+  String? _busyProfileId;
 
   @override
   void dispose() {
@@ -57,6 +58,39 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
       if (mounted) showAppSnack(context, 'Swipe failed: $error', error: true);
     } finally {
       _swiping = false;
+    }
+  }
+
+  Future<void> _sendProfileAction(
+    Profile profile,
+    SwipeDirection direction,
+  ) async {
+    if (_busyProfileId != null) return;
+    setState(() => _busyProfileId = profile.id);
+    try {
+      final String? matchId = await ref
+          .read(discoverControllerProvider.notifier)
+          .swipe(profile: profile, direction: direction);
+      ref.invalidate(likedMeProvider);
+      ref.invalidate(myRequestsProvider);
+      ref.invalidate(sentRequestsProvider);
+      if (!mounted) return;
+      if (matchId != null) {
+        await MatchDialog.show(context, profile: profile, matchId: matchId);
+      } else {
+        showAppSnack(
+          context,
+          direction == SwipeDirection.request
+              ? 'Connection request sent to ${profile.fullName}.'
+              : 'You are interested in ${profile.fullName}.',
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        showAppSnack(context, 'Could not send action: $error', error: true);
+      }
+    } finally {
+      if (mounted) setState(() => _busyProfileId = null);
     }
   }
 
@@ -200,6 +234,15 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                                     return ProfileCard(
                                       profile: profile,
                                       onMenu: () => _openSafetySheet(profile),
+                                      busy: _busyProfileId == profile.id,
+                                      onLike: () => _sendProfileAction(
+                                        profile,
+                                        SwipeDirection.like,
+                                      ),
+                                      onConnect: () => _sendProfileAction(
+                                        profile,
+                                        SwipeDirection.request,
+                                      ),
                                     );
                                   },
                             ),

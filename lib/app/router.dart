@@ -35,6 +35,7 @@ class AppRoutes {
   static const String messages = '/messages';
   static const String profile = '/profile';
   static const String settings = '/settings';
+  static const String editProfile = '/edit-profile';
   static const String notifications = '/notifications';
 
   static String chat(String matchId) => '/chat/$matchId';
@@ -67,9 +68,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // null and bounce the user back to /sign-in in a loop.
       final bool isSignedIn =
           ref.read(authRepositoryProvider).currentUser != null;
-      final bool isOnboardingComplete = ref.read(
-        isOnboardingCompleteProvider,
-      );
+      // Profile reads are asynchronous. Do not treat a still-loading profile
+      // as incomplete and send an existing user through onboarding; the splash
+      // screen waits for the profile and routes based on its actual contents.
+      final profileState = ref.read(myProfileControllerProvider);
+      if (profileState.isLoading || profileState.hasError) {
+        return AppRoutes.splash;
+      }
+      final bool isOnboardingComplete = ref.read(isOnboardingCompleteProvider);
 
       final bool isAuthRoute =
           location == AppRoutes.signIn ||
@@ -82,7 +88,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       }
 
       if (!isOnboardingComplete) {
-        return location == AppRoutes.onboarding
+        return location == AppRoutes.onboarding ||
+                location == AppRoutes.editProfile
             ? null
             : AppRoutes.onboarding;
       }
@@ -165,11 +172,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
+        path: AppRoutes.editProfile,
+        name: 'editProfile',
+        builder: (context, state) => const OnboardingScreen(isEditing: true),
+      ),
+      GoRoute(
         path: '/chat/:matchId',
         name: 'chat',
-        builder: (context, state) => ChatScreen(
-          matchId: state.pathParameters['matchId']!,
-        ),
+        builder: (context, state) =>
+            ChatScreen(matchId: state.pathParameters['matchId']!),
       ),
     ],
   );

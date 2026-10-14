@@ -31,6 +31,28 @@ class ProfileRepository {
 
   /// Inserts or updates the caller's own profile (RLS-restricted).
   Future<void> saveProfile(Profile profile) async {
-    await _client.from('profiles').upsert(profile.toUpsertJson());
+    final String? authenticatedUserId = _client.auth.currentUser?.id;
+    if (authenticatedUserId == null) {
+      throw StateError('Sign in before saving a profile.');
+    }
+    if (profile.id != authenticatedUserId) {
+      throw StateError('A user can only save their own profile.');
+    }
+
+    await _client
+        .from('profiles')
+        .upsert(profile.toUpsertJson(), onConflict: 'id');
+
+    // Confirm the write is visible through the caller's authenticated session;
+    // don't report onboarding complete if RLS/schema prevented persistence.
+    final Map<String, dynamic>? savedRow = await _client
+        .from('profiles')
+        .select('id')
+        .eq('id', authenticatedUserId)
+        .maybeSingle();
+    if (savedRow == null) {
+      throw StateError('Profile save could not be verified. Please try again.');
+    }
   }
+
 }

@@ -25,8 +25,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   bool _busy = false;
   bool _linkSent = false;
 
-  bool get _ne =>
-      ref.read(localeControllerProvider) == AppLanguage.nepali;
+  bool get _ne => ref.read(localeControllerProvider) == AppLanguage.nepali;
 
   @override
   void dispose() {
@@ -79,10 +78,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     }
 
     setState(() => _busy = true);
-    final String? error = await ref.read(authControllerProvider).sendMagicLink(
-      email: emailText,
-      emailRedirectTo: 'io.supabase.milanapp://login-callback/',
-    );
+    final String? error = await ref
+        .read(authControllerProvider)
+        .sendMagicLink(
+          email: emailText,
+          emailRedirectTo: 'io.supabase.milanapp://login-callback/',
+        );
     if (!mounted) return;
     setState(() {
       _busy = false;
@@ -114,6 +115,58 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
+                    Center(
+                      child: Container(
+                        width: 88,
+                        height: 88,
+                        margin: const EdgeInsets.only(bottom: 22),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(28),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: <Color>[
+                              Color(0xFFFF9A62),
+                              Color(0xFFFF4D69),
+                            ],
+                          ),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.72),
+                            width: 1.5,
+                          ),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: const Color(0xFFE94B55)
+                                  .withValues(alpha: 0.25),
+                              blurRadius: 26,
+                              offset: const Offset(0, 12),
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: <Widget>[
+                            Transform.translate(
+                              offset: const Offset(-10, -5),
+                              child: const Icon(
+                                Icons.favorite_rounded,
+                                size: 38,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(11, 7),
+                              child: Icon(
+                                Icons.favorite_rounded,
+                                size: 29,
+                                color: const Color(0xFFFFD6C7)
+                                    .withValues(alpha: 0.96),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     Text(
                       strings.welcomeBack,
                       textAlign: TextAlign.center,
@@ -141,8 +194,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         ),
                         child: Row(
                           children: <Widget>[
-                            Icon(Icons.mark_email_read_outlined,
-                                color: theme.colorScheme.onPrimaryContainer),
+                            Icon(
+                              Icons.mark_email_read_outlined,
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
@@ -156,99 +211,98 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           ],
                         ),
                       ),
-                  TextFormField(
-                    controller: _email,
-                    keyboardType: TextInputType.emailAddress,
-                    autofillHints: const <String>[AutofillHints.email],
-                    textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                      labelText: strings.email,
-                      prefixIcon: const Icon(Icons.mail_outline),
-                    ),
-                    validator: _validateEmail,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _password,
-                    obscureText: _obscure,
-                    autofillHints: const <String>[AutofillHints.password],
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _submit(),
-                    decoration: InputDecoration(
-                      labelText: strings.password,
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscure
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                        ),
-                        onPressed: () =>
-                            setState(() => _obscure = !_obscure),
+                    TextFormField(
+                      controller: _email,
+                      keyboardType: TextInputType.emailAddress,
+                      autofillHints: const <String>[AutofillHints.email],
+                      textInputAction: TextInputAction.next,
+                      decoration: InputDecoration(
+                        labelText: strings.email,
+                        prefixIcon: const Icon(Icons.mail_outline),
                       ),
+                      validator: _validateEmail,
                     ),
-                    validator: _validatePassword,
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: _busy
-                          ? null
-                          : () => context.push(AppRoutes.forgotPassword),
-                      child: Text(strings.forgotPassword),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  GlassButton(
-                    onPressed: _busy ? null : _submit,
-                    loading: _busy,
-                    label: strings.signIn,
-                  ),
-                  const SizedBox(height: 16),
-                  // Divider with "or"
-                  Row(
-                    children: <Widget>[
-                      const Expanded(child: Divider()),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          _ne ? 'वा' : 'or',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _password,
+                      obscureText: _obscure,
+                      autofillHints: const <String>[AutofillHints.password],
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _submit(),
+                      decoration: InputDecoration(
+                        labelText: strings.password,
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscure
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                           ),
+                          onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                       ),
-                      const Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // Magic Link sign in
-                  OutlinedButton.icon(
-                    onPressed: _busy ? null : _sendMagicLink,
-                    icon: const Icon(Icons.link_outlined),
-                    label: Text(strings.signInWithMagicLink),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      validator: _validatePassword,
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(strings.noAccount),
-                      TextButton(
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
                         onPressed: _busy
                             ? null
-                            : () => context.pushReplacement(AppRoutes.signUp),
-                        child: Text(strings.signUp),
+                            : () => context.push(AppRoutes.forgotPassword),
+                        child: Text(strings.forgotPassword),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 8),
+                    GlassButton(
+                      onPressed: _busy ? null : _submit,
+                      loading: _busy,
+                      label: strings.signIn,
+                    ),
+                    const SizedBox(height: 16),
+                    // Divider with "or"
+                    Row(
+                      children: <Widget>[
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            _ne ? 'वा' : 'or',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Magic Link sign in
+                    OutlinedButton.icon(
+                      onPressed: _busy ? null : _sendMagicLink,
+                      icon: const Icon(Icons.link_outlined),
+                      label: Text(strings.signInWithMagicLink),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text(strings.noAccount),
+                        TextButton(
+                          onPressed: _busy
+                              ? null
+                              : () => context.pushReplacement(AppRoutes.signUp),
+                          child: Text(strings.signUp),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
         ),
       ),
     );

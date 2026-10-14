@@ -19,7 +19,9 @@ import 'package:milan_app/features/onboarding/screens/steps/photos_step.dart';
 
 /// Multi-step wizard that turns a fresh account into a discoverable profile.
 class OnboardingScreen extends ConsumerStatefulWidget {
-  const OnboardingScreen({super.key});
+  const OnboardingScreen({super.key, this.isEditing = false});
+
+  final bool isEditing;
 
   @override
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -28,7 +30,7 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   static const int _stepCount = 4;
 
-  final PageController _pageController = PageController();
+  late final PageController _pageController;
   final GlobalKey<FormState> _detailsFormKey = GlobalKey<FormState>();
   final TextEditingController _name = TextEditingController();
   final TextEditingController _bio = TextEditingController();
@@ -48,6 +50,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   /// Optional lifestyle details (all nullable = "not set").
   int? _heightCm;
+  String? _selectedOccupation;
   String? _religion;
   String? _education;
   String? _diet;
@@ -62,14 +65,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    // Pre-fill whatever already exists (e.g. the name captured at sign-up).
+    // Pre-fill all saved data and resume at the first required step that is
+    // incomplete. This also lets existing accounts finish a partial profile.
     final Profile? existing = ref.read(myProfileControllerProvider).value;
     if (existing != null) {
       _name.text = existing.fullName;
       _bio.text = existing.bio;
       _permanentAddress.text = existing.permanentAddress;
       _currentLocation.text = existing.currentLocation;
-      _occupation.text = existing.occupation;
+      if (DetailsStep.occupations.contains(existing.occupation)) {
+        _selectedOccupation = existing.occupation;
+      } else if (existing.occupation.isNotEmpty) {
+        _selectedOccupation = 'Other';
+        _occupation.text = existing.occupation;
+      }
       _phone.text = existing.phone;
       _height.text = existing.heightCm?.toString() ?? '';
       _birthDate = existing.birthDate;
@@ -85,7 +94,49 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _maritalStatus = existing.maritalStatus;
       _zodiacSign = existing.zodiacSign;
     }
+    _step = _firstIncompleteStep();
+    _pageController = PageController(initialPage: _step);
   }
+
+  int _firstIncompleteStep() {
+    for (int step = 0; step < _stepCount; step++) {
+      if (!_isStepComplete(step)) return step;
+    }
+    return 0;
+  }
+
+  bool _isStepComplete(int step) {
+    switch (step) {
+      case 0:
+        return _name.text.trim().isNotEmpty && _gender != null;
+      case 1:
+        final DateTime? dob = _birthDate;
+        return dob != null && _ageOf(dob) >= kMinAge;
+      case 2:
+        return _photoUrls.isNotEmpty;
+      case 3:
+        return _selectedOccupation != null &&
+            (_selectedOccupation != 'Other' || _occupation.text.trim().isNotEmpty) &&
+            _maritalStatus != null &&
+            _zodiacSign != null &&
+            _isHeightValid &&
+            _height.text.trim().isNotEmpty &&
+            _bio.text.trim().isNotEmpty &&
+            _permanentAddress.text.trim().isNotEmpty &&
+            _currentLocation.text.trim().isNotEmpty &&
+            _phone.text.trim().isNotEmpty &&
+            _interests.isNotEmpty &&
+            _religion != null &&
+            _education != null &&
+            _diet != null &&
+            _smoking != null;
+      default:
+        return false;
+    }
+  }
+
+  bool get _isProfileFullyComplete =>
+      List<bool>.generate(_stepCount, _isStepComplete).every((bool done) => done);
 
   @override
   void dispose() {
@@ -113,14 +164,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   bool get _isStepValid {
     switch (_step) {
       case 0:
-        return _name.text.trim().isNotEmpty && _gender != null;
+        return _isStepComplete(0);
       case 1:
-        final DateTime? dob = _birthDate;
-        return dob != null && _ageOf(dob) >= kMinAge;
+        return _isStepComplete(1);
       case 2:
-        return _photoUrls.isNotEmpty;
+        return _isStepComplete(2);
       case 3:
-        return _maritalStatus != null && _zodiacSign != null;
+        return _isStepComplete(3);
       default:
         return true;
     }
@@ -129,24 +179,56 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   String get _stepError {
     switch (_step) {
       case 0:
-        return _name.text.trim().isEmpty
-            ? 'Please enter your name'
-            : 'Please select your gender';
+        if (_name.text.trim().isEmpty) return 'Please enter your name';
+        if (_gender == null) return 'Please select your gender';
+        return '';
       case 1:
         if (_birthDate == null) return 'Please pick your date of birth';
         return 'You must be at least $kMinAge years old';
       case 2:
         return 'Please add at least one photo';
       case 3:
-        if (_maritalStatus == null && _zodiacSign == null) {
-          return 'Please select your marital status and zodiac sign';
+        if (_selectedOccupation == null) return 'Please select your profession';
+        if (_selectedOccupation == 'Other' && _occupation.text.trim().isEmpty) {
+          return 'Please enter your profession';
         }
-        return _maritalStatus == null
-            ? 'Please select your marital status'
-            : 'Please select your zodiac sign';
+        if (_maritalStatus == null) return 'Please select your marital status';
+        if (_zodiacSign == null) return 'Please select your zodiac sign';
+        if (_height.text.trim().isEmpty) return 'Please enter your height';
+        if (!_isHeightValid) {
+          return 'Enter a height from 122 cm to 213 cm (4′0″–7′0″)';
+        }
+        if (_selectedOccupation == null) return 'Please select your profession';
+        if (_selectedOccupation == 'Other' && _occupation.text.trim().isEmpty) {
+          return 'Please enter your profession';
+        }
+        if (_maritalStatus == null) return 'Please select your marital status';
+        if (_zodiacSign == null) return 'Please select your zodiac sign';
+        if (_height.text.trim().isEmpty) return 'Please enter your height';
+        if (_bio.text.trim().isEmpty) return 'Please add an About me description';
+        if (_permanentAddress.text.trim().isEmpty) {
+          return 'Please enter your permanent address';
+        }
+        if (_currentLocation.text.trim().isEmpty) {
+          return 'Please enter your current location';
+        }
+        if (_phone.text.trim().isEmpty) return 'Please enter your phone number';
+        if (_interests.isEmpty) return 'Please select at least one interest';
+        if (_religion == null) return 'Please select your religion';
+        if (_education == null) return 'Please select your education';
+        if (_diet == null) return 'Please select your diet';
+        if (_smoking == null) return 'Please select your smoking preference';
+        return 'Please check your profile details';
       default:
         return '';
     }
+  }
+
+  bool get _isHeightValid {
+    final String input = _height.text.trim();
+    if (input.isEmpty) return true;
+    final int? value = int.tryParse(input);
+    return value != null && value >= 122 && value <= 213;
   }
 
   void _next() {
@@ -280,7 +362,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Future<void> _finish() async {
-    final String? userId = ref.read(currentUserIdProvider);
+    final String? userId = ref.read(authRepositoryProvider).currentUser?.id;
     if (userId == null) return;
 
     setState(() {
@@ -289,11 +371,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
 
     final int? parsedHeight = int.tryParse(_height.text.trim());
-    if (parsedHeight != null) {
-      _heightCm = parsedHeight.clamp(100, 250);
-    } else if (_height.text.trim().isEmpty) {
-      _heightCm = null;
-    }
+    _heightCm = parsedHeight;
 
     final Profile profile = Profile(
       id: userId,
@@ -304,7 +382,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       bio: _bio.text.trim(),
       permanentAddress: _permanentAddress.text.trim(),
       currentLocation: _currentLocation.text.trim(),
-      occupation: _occupation.text.trim(),
+      occupation: _selectedOccupation == 'Other'
+          ? _occupation.text.trim()
+          : _selectedOccupation ?? '',
       phone: _phone.text.trim(),
       interests: _interests.toList(growable: false),
       photoUrls: List<String>.unmodifiable(_photoUrls),
@@ -318,9 +398,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
 
     try {
+      if (!_isProfileFullyComplete) {
+        setState(() {
+          _busy = false;
+          _error = _stepError;
+        });
+        return;
+      }
       await ref.read(myProfileControllerProvider.notifier).save(profile);
       if (!mounted) return;
-      context.go(AppRoutes.home);
+      context.go(widget.isEditing ? AppRoutes.profile : AppRoutes.home);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -336,8 +423,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text('Step ${_step + 1} of $_stepCount'),
+        automaticallyImplyLeading: widget.isEditing,
+        title: Text(
+          widget.isEditing
+              ? 'Edit profile · Step ${_step + 1} of $_stepCount'
+              : 'Step ${_step + 1} of $_stepCount',
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
           child: TweenAnimationBuilder<double>(
@@ -388,6 +479,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     fetchingLocation: _fetchingLocation,
                     onFetchLocation: _fetchCurrentLocation,
                     occupationController: _occupation,
+                    selectedOccupation: _selectedOccupation,
+                    onOccupationChanged: (String? value) => setState(() {
+                      _selectedOccupation = value;
+                      if (value != 'Other') _occupation.clear();
+                    }),
                     phoneController: _phone,
                     heightController: _height,
                     interests: _interests,

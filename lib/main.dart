@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:milan_app/app/app.dart';
+import 'package:milan_app/core/constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
@@ -21,29 +20,21 @@ void main() {
       return true;
     };
 
-    try {
-      final envString = await rootBundle.loadString('env.json');
-      final decoded = jsonDecode(envString);
-      if (decoded is! Map<String, dynamic>) {
-        throw const FormatException('Expected a JSON object in env.json.');
-      }
-
-      final url = decoded['SUPABASE_URL'];
-      final anonKey = decoded['SUPABASE_ANON_KEY'];
-      if (url is! String || url.trim().isEmpty ||
-          anonKey is! String || anonKey.trim().isEmpty) {
-        throw const FormatException(
-          'env.json must contain non-empty SUPABASE_URL and SUPABASE_ANON_KEY strings.',
+    if (AppConfig.isBackendConfigured) {
+      try {
+        await Supabase.initialize(
+          url: AppConfig.supabaseUrl,
+          publishableKey: AppConfig.supabaseAnonKey,
         );
+      } catch (error, stack) {
+        debugPrint('Warning: Supabase initialization failed: $error\n$stack');
       }
-
-      await Supabase.initialize(url: url, publishableKey: anonKey);
-    } on FlutterError catch (error) {
-      debugPrint('Warning: Could not load env.json asset: $error');
-    } on FormatException catch (error) {
-      debugPrint('Warning: env.json is not configured correctly: $error');
-    } catch (error, stack) {
-      debugPrint('Warning: Supabase initialization failed: $error\n$stack');
+    } else {
+      debugPrint(
+        'Supabase credentials are missing. Configure SUPABASE_URL and '
+        'SUPABASE_ANON_KEY in env.json and launch with '
+        '--dart-define-from-file=env.json.',
+      );
     }
 
     runApp(const ProviderScope(child: MilanApp()));

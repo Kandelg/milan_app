@@ -30,12 +30,14 @@ class AppEmptyState extends StatelessWidget {
   const AppEmptyState({
     super.key,
     required this.icon,
+    this.iconWidget,
     required this.title,
     this.message,
     this.action,
   });
 
   final IconData icon;
+  final Widget? iconWidget;
   final String title;
   final String? message;
   final Widget? action;
@@ -49,7 +51,8 @@ class AppEmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 72, color: theme.colorScheme.outlineVariant),
+            iconWidget ??
+                Icon(icon, size: 72, color: theme.colorScheme.outlineVariant),
             const SizedBox(height: 16),
             Text(
               title,

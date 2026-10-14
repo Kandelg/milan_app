@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:milan_app/core/constants.dart';
 import 'package:milan_app/core/localization.dart';
 import 'package:milan_app/core/widgets.dart';
@@ -27,6 +28,22 @@ IconData profileDetailIcon(String kind) {
 
 /// Step 4 — bio, city, occupation, height, lifestyle and interests.
 class DetailsStep extends StatelessWidget {
+  static const List<String> occupations = <String>[
+    'Student',
+    'Teacher',
+    'Healthcare Professional',
+    'Engineer',
+    'IT Professional',
+    'Business Owner',
+    'Government Employee',
+    'Finance Professional',
+    'Lawyer',
+    'Artist / Designer',
+    'Hospitality Professional',
+    'Homemaker',
+    'Other',
+  ];
+
   const DetailsStep({
     super.key,
     required this.formKey,
@@ -36,6 +53,8 @@ class DetailsStep extends StatelessWidget {
     required this.fetchingLocation,
     required this.onFetchLocation,
     required this.occupationController,
+    required this.selectedOccupation,
+    required this.onOccupationChanged,
     required this.phoneController,
     required this.heightController,
     required this.interests,
@@ -61,6 +80,8 @@ class DetailsStep extends StatelessWidget {
   final bool fetchingLocation;
   final VoidCallback onFetchLocation;
   final TextEditingController occupationController;
+  final String? selectedOccupation;
+  final ValueChanged<String?> onOccupationChanged;
   final TextEditingController phoneController;
   final TextEditingController heightController;
   final Set<String> interests;
@@ -158,24 +179,60 @@ class DetailsStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          TextFormField(
-            controller: occupationController,
-            textCapitalization: TextCapitalization.sentences,
+          DropdownButtonFormField<String>(
+            initialValue: selectedOccupation,
             decoration: InputDecoration(
               labelText: strings.occupation,
               prefixIcon: Icon(profileDetailIcon('occupation')),
             ),
+            items: occupations
+                .map(
+                  (String value) => DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: onOccupationChanged,
           ),
+          if (selectedOccupation == 'Other') ...<Widget>[
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: occupationController,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(
+                labelText: 'Specify your profession',
+                prefixIcon: Icon(Icons.work_outline),
+              ),
+              validator: (String? value) =>
+                  selectedOccupation == 'Other' &&
+                      (value == null || value.trim().isEmpty)
+                  ? 'Please enter your profession'
+                  : null,
+            ),
+          ],
           const SizedBox(height: 16),
           TextFormField(
             controller: heightController,
             keyboardType: TextInputType.number,
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.digitsOnly,
+            ],
             decoration: InputDecoration(
               labelText: strings.height,
-              hintText: strings.heightHint,
+              hintText: '122–213 cm (4′0″–7′0″)',
               prefixIcon: Icon(profileDetailIcon('height')),
               suffixText: 'cm',
             ),
+            validator: (String? value) {
+              final String input = value?.trim() ?? '';
+              if (input.isEmpty) return null;
+              final int? heightCm = int.tryParse(input);
+              if (heightCm == null || heightCm < 122 || heightCm > 213) {
+                return 'Enter a height from 122 cm to 213 cm (4′0″–7′0″)';
+              }
+              return null;
+            },
           ),
           const SizedBox(height: 16),
           TextFormField(

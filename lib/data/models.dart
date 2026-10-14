@@ -13,6 +13,8 @@ class Profile {
     this.currentLocation = '',
     this.occupation = '',
     this.phone = '',
+    this.birthDateVisibility = 'public',
+    this.phoneVisibility = 'only_me',
     this.interests = const <String>[],
     this.photoUrls = const <String>[],
     this.heightCm,
@@ -51,6 +53,11 @@ class Profile {
 
   /// Mobile number stored as plain profile data (no verification).
   final String phone;
+
+  /// Who may see the exact date of birth / phone number.
+  /// Values: `public`, `friends`, `only_me`.
+  final String birthDateVisibility;
+  final String phoneVisibility;
 
   /// Free-form tags chosen from [kInterests].
   final List<String> interests;
@@ -103,7 +110,24 @@ class Profile {
       fullName.trim().isNotEmpty &&
       birthDate != null &&
       gender != null &&
-      photoUrls.isNotEmpty;
+      age != null &&
+      age! >= kMinAge &&
+      photoUrls.isNotEmpty &&
+      permanentAddress.trim().isNotEmpty &&
+      currentLocation.trim().isNotEmpty &&
+      occupation.trim().isNotEmpty &&
+      maritalStatus != null &&
+      zodiacSign != null &&
+      bio.trim().isNotEmpty &&
+      phone.trim().isNotEmpty &&
+      interests.isNotEmpty &&
+      heightCm != null &&
+      heightCm! >= 122 &&
+      heightCm! <= 213 &&
+      religion != null &&
+      education != null &&
+      diet != null &&
+      smoking != null;
 
   /// Height shown as '5x7"' · 170 cm. Null when not set.
   String? get heightLabel {
@@ -128,6 +152,8 @@ class Profile {
     String? city,
     String? occupation,
     String? phone,
+    String? birthDateVisibility,
+    String? phoneVisibility,
     List<String>? interests,
     List<String>? photoUrls,
     int? heightCm,
@@ -151,6 +177,8 @@ class Profile {
       currentLocation: currentLocation ?? city ?? this.currentLocation,
       occupation: occupation ?? this.occupation,
       phone: phone ?? this.phone,
+      birthDateVisibility: birthDateVisibility ?? this.birthDateVisibility,
+      phoneVisibility: phoneVisibility ?? this.phoneVisibility,
       interests: interests ?? this.interests,
       photoUrls: photoUrls ?? this.photoUrls,
       heightCm: heightCm ?? this.heightCm,
@@ -178,6 +206,8 @@ class Profile {
       'current_location': currentLocation.trim(),
       'occupation': occupation.trim(),
       'phone': phone.trim(),
+      'birth_date_visibility': birthDateVisibility,
+      'phone_visibility': phoneVisibility,
       'interests': interests,
       'photo_urls': photoUrls,
       'height_cm': heightCm,
@@ -206,6 +236,8 @@ class Profile {
           '',
       occupation: (json['occupation'] as String?) ?? '',
       phone: (json['phone'] as String?) ?? '',
+      birthDateVisibility: _visibilityValue(json['birth_date_visibility']),
+      phoneVisibility: _visibilityValue(json['phone_visibility']),
       interests: _parseStringList(json['interests']),
       photoUrls: _parseStringList(json['photo_urls']),
       heightCm: (json['height_cm'] as num?)?.toInt(),
@@ -239,6 +271,11 @@ class Profile {
         .where((String s) => s.trim().isNotEmpty)
         .toList(growable: false);
   }
+
+  static String _visibilityValue(dynamic value) =>
+      const <String>{'public', 'friends', 'only_me'}.contains(value)
+      ? value as String
+      : 'public';
 }
 
 /// Kind of a story: a photo or a short written status.

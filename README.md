@@ -35,6 +35,10 @@ milan_app/
    (सुरुमा "Confirm email" बन्द राख्नुहोस् भने तुरन्तै लगइन हुन्छ।)
 4. Project Settings → **API** बाट `URL` र `anon/publishable key` लिनुहोस्।
 
+पहिले नै चलिरहेको Supabase project मा onboarding profile का नयाँ fields थप्न
+Dashboard → **SQL Editor** मा `supabase/profile_onboarding_columns_migration.sql`
+चलाउनुहोस्। नयाँ project मा भने माथिको `supabase/schema.sql` पर्याप्त छ।
+
 ## २. एप चलाउने तरिका
 
 ```bash
@@ -55,8 +59,10 @@ flutter run --dart-define-from-file=env.json
 flutter build apk --release --dart-define-from-file=env.json
 ```
 
-> **नोट:** `--dart-define-from-file` नदिएमा एप खुल्दा "Connect Supabase" सन्देश देखाउँछ —
-> कुनै पनि key कोडभित्र हार्डकोड गरिएको छैन।
+> **नोट:** VS Code मा **Milan App (with Supabase) - USE THIS** launch configuration
+> चयन गर्नुहोस्। यसले `env.json` बाट compile-time credentials स्वतः पठाउँछ.
+> Terminal बाट चलाउँदा पनि माथिका commands मा `--dart-define-from-file=env.json`
+> राख्नुहोस्। यो flag नदिँदा app लाई Supabase credentials उपलब्ध हुँदैनन्।
 
 ## ३. परीक्षण
 

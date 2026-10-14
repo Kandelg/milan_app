@@ -9,12 +9,22 @@ import 'package:milan_app/features/onboarding/screens/steps/details_step.dart';
 /// One swipeable profile card: photo, gradient scrim, glass details and a
 /// block/report menu.
 class ProfileCard extends StatelessWidget {
-  const ProfileCard({super.key, required this.profile, this.onMenu});
+  const ProfileCard({
+    super.key,
+    required this.profile,
+    this.onMenu,
+    this.onLike,
+    this.onConnect,
+    this.busy = false,
+  });
 
   final Profile profile;
 
   /// Opens the block / report sheet; provided by [DiscoverScreen].
   final VoidCallback? onMenu;
+  final VoidCallback? onLike;
+  final VoidCallback? onConnect;
+  final bool busy;
 
   @override
   Widget build(BuildContext context) {
@@ -71,8 +81,48 @@ class ProfileCard extends StatelessWidget {
                 ),
               ),
 
+            if (age != null)
+              Positioned(
+                top: 16,
+                left: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.48),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white70),
+                  ),
+                  child: Text(
+                    '$age years',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+
+            if (onLike != null)
+              Positioned(
+                right: 16,
+                top: 68,
+                child: _GlassIconButton(
+                  icon: Icons.favorite,
+                  onPressed: busy ? () {} : onLike!,
+                  color: const Color(0xFFEE2E31),
+                ),
+              ),
+
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                onConnect == null ? 20 : 88,
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,6 +219,39 @@ class ProfileCard extends StatelessWidget {
                 ],
               ),
             ),
+
+            if (onConnect != null)
+              Positioned(
+                left: 20,
+                right: 20,
+                bottom: 18,
+                child: SizedBox(
+                  height: 54,
+                  child: FilledButton.icon(
+                    onPressed: busy ? null : onConnect,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF16C928),
+                      foregroundColor: Colors.white,
+                      shape: const StadiumBorder(),
+                      textStyle: const TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    icon: busy
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.check_circle_outline_rounded),
+                    label: const Text('CONNECT'),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -231,10 +314,15 @@ class _DetailChip {
 }
 
 class _GlassIconButton extends StatelessWidget {
-  const _GlassIconButton({required this.icon, required this.onPressed});
+  const _GlassIconButton({
+    required this.icon,
+    required this.onPressed,
+    this.color = Colors.white,
+  });
 
   final IconData icon;
   final VoidCallback onPressed;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -249,7 +337,7 @@ class _GlassIconButton extends StatelessWidget {
             onTap: onPressed,
             child: Padding(
               padding: const EdgeInsets.all(8),
-              child: Icon(icon, color: Colors.white, size: 20),
+              child: Icon(icon, color: color, size: 20),
             ),
           ),
         ),

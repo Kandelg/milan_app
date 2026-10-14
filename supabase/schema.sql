@@ -25,9 +25,13 @@ create table if not exists public.profiles (
   interested_in text not null default 'everyone'
     check (interested_in in ('male', 'female', 'other', 'everyone')),
   bio text not null default '',
+  permanent_address text not null default '',
+  current_location text not null default '',
   city text not null default '',
   occupation text not null default '',
   phone text not null default '',
+  marital_status text,
+  zodiac_sign text,
   interests text[] not null default '{}',
   photo_urls text[] not null default '{}',
   -- Extra lifestyle details (all optional, shown with icons on cards).
@@ -75,6 +79,14 @@ alter table public.profiles
     check (smoking is null or smoking in ('smoker', 'non_smoker'));
 alter table public.profiles
   add column if not exists phone text not null default '';
+alter table public.profiles
+  add column if not exists permanent_address text not null default '';
+alter table public.profiles
+  add column if not exists current_location text not null default '';
+alter table public.profiles
+  add column if not exists marital_status text;
+alter table public.profiles
+  add column if not exists zodiac_sign text;
 
 -- Only adults may be discoverable.
 alter table public.profiles

@@ -78,8 +78,19 @@ create policy "users delete their own notifications"
   to authenticated
   using (auth.uid() = user_id);
 
--- Realtime: let the app push new notifications / likes into the UI live.
-alter publication supabase_realtime add table public.notifications;
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'notifications'
+  ) then
+    alter publication supabase_realtime add table public.notifications;
+  end if;
+end;
+$$;
 
 
 -- ---------------------------------------------------------------------------
@@ -177,6 +188,7 @@ begin
     'match_id', v_match_id
   );
 end;
+$$;
 
 -- ---------------------------------------------------------------------------
 -- 5. get_liked_me() — profiles that liked me, not yet matched
@@ -202,7 +214,7 @@ as $$
   candidates as (
     select
       p.id, p.full_name, p.birth_date, p.gender, p.interested_in,
-      p.bio, p.city, p.occupation, p.interests, p.photo_urls,
+      p.bio, p.current_location as city, p.occupation, p.interests, p.photo_urls,
       extract(year from age(current_date, p.birth_date))::int as age
     from public.swipes s
     join public.profiles p on p.id = s.swiper_id
@@ -243,7 +255,7 @@ as $$
   candidates as (
     select
       p.id, p.full_name, p.birth_date, p.gender, p.interested_in,
-      p.bio, p.city, p.occupation, p.interests, p.photo_urls,
+      p.bio, p.current_location as city, p.occupation, p.interests, p.photo_urls,
       extract(year from age(current_date, p.birth_date))::int as age
     from public.swipes s
     join public.profiles p on p.id = s.swiper_id
@@ -288,7 +300,7 @@ as $$
   candidates as (
     select
       p.id, p.full_name, p.birth_date, p.gender, p.interested_in,
-      p.bio, p.city, p.occupation, p.interests, p.photo_urls,
+      p.bio, p.current_location as city, p.occupation, p.interests, p.photo_urls,
       extract(year from age(current_date, p.birth_date))::int as age
     from public.swipes s
     join public.profiles p on p.id = s.target_id

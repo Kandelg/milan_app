@@ -69,7 +69,8 @@ class _LikedTabState extends ConsumerState<LikedTab> {
               crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              childAspectRatio: 0.72,
+              // Landscape photo cards: width-to-height ratio of 16:9.
+              childAspectRatio: 16 / 9,
             ),
             itemCount: profiles.length,
             itemBuilder: (BuildContext context, int index) {

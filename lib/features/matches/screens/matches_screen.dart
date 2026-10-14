@@ -32,7 +32,34 @@ class MatchesScreen extends ConsumerWidget {
 
           if (newMatches.isEmpty) {
             return AppEmptyState(
-              icon: Icons.favorite_border,
+              icon: Icons.favorite_rounded,
+              iconWidget: SizedBox(
+                width: 80,
+                height: 72,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: <Widget>[
+                    Positioned(
+                      left: 10,
+                      top: 16,
+                      child: Icon(
+                        Icons.favorite_rounded,
+                        size: 42,
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                    ),
+                    Positioned(
+                      right: 10,
+                      bottom: 10,
+                      child: Icon(
+                        Icons.favorite_rounded,
+                        size: 42,
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               title: strings.noNewMatchesTitle,
               message: strings.noNewMatchesBody,
             );

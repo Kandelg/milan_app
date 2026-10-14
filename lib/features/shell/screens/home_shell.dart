@@ -49,6 +49,7 @@ class HomeShell extends ConsumerWidget {
         selectedIcon: Icons.favorite,
         label: strings.matches,
         badgeCount: newMatches,
+        doubleHeart: true,
       ),
       _ShellTab(
         path: AppRoutes.profile,
@@ -164,7 +165,8 @@ class _NavItem extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               decoration: BoxDecoration(
                 color: selected
-                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.15)
+                    ? Theme.of(context).colorScheme.primary
+                          .withValues(alpha: 0.15)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -172,6 +174,7 @@ class _NavItem extends StatelessWidget {
                 icon: selected ? tab.selectedIcon : tab.icon,
                 color: color,
                 count: tab.badgeCount,
+                doubleHeart: tab.doubleHeart,
               ),
             ),
             const SizedBox(height: 2),
@@ -197,6 +200,7 @@ class _ShellTab {
     required this.selectedIcon,
     required this.label,
     this.badgeCount = 0,
+    this.doubleHeart = false,
   });
 
   final String path;
@@ -206,6 +210,7 @@ class _ShellTab {
 
   /// Number shown in the small badge on the icon (0 hides the badge).
   final int badgeCount;
+  final bool doubleHeart;
 }
 
 /// An icon with an optional count badge pinned to its top-right corner.
@@ -214,15 +219,29 @@ class _BadgedIcon extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.count,
+    this.doubleHeart = false,
   });
 
   final IconData icon;
   final Color color;
   final int count;
+  final bool doubleHeart;
 
   @override
   Widget build(BuildContext context) {
-    final Widget image = Icon(icon, color: color, size: 24);
+    final Widget image = doubleHeart
+        ? SizedBox(
+            width: 30,
+            height: 24,
+            child: Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                Positioned(left: 0, child: Icon(icon, color: color, size: 18)),
+                Positioned(right: 0, child: Icon(icon, color: color, size: 18)),
+              ],
+            ),
+          )
+        : Icon(icon, color: color, size: 24);
     if (count <= 0) return image;
 
     final String label = count > 9 ? '9+' : '$count';
@@ -241,4 +260,3 @@ class _BadgedIcon extends StatelessWidget {
     );
   }
 }
-

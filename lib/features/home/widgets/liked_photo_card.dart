@@ -45,32 +45,99 @@ class LikedPhotoCard extends StatelessWidget {
               child: const Icon(Icons.person, size: 48),
             ),
 
-          // Bottom scrim with name + age.
+          // Lower-third caption: name/location on the left, details on right.
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 24, 12, 10),
+              padding: const EdgeInsets.fromLTRB(12, 28, 12, 12),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: <Color>[
                     Colors.transparent,
-                    Colors.black.withValues(alpha: 0.65),
+                    Colors.black.withValues(alpha: 0.82),
                   ],
                 ),
               ),
-              child: Text(
-                age != null ? '${profile.fullName}, $age' : profile.fullName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          profile.fullName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                        if (profile.currentLocation
+                            .trim()
+                            .isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 3),
+                          Row(
+                            children: <Widget>[
+                              const Icon(
+                                Icons.location_on_outlined,
+                                color: Colors.white70,
+                                size: 13,
+                              ),
+                              const SizedBox(width: 3),
+                              Expanded(
+                                child: Text(
+                                  profile.currentLocation.trim(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  if (age != null || profile.heightLabel != null) ...<Widget>[
+                    const SizedBox(width: 8),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        if (age != null)
+                          Text(
+                            '$age years',
+                            maxLines: 1,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
+                        if (profile.heightLabel != null)
+                          Text(
+                            profile.heightLabel!,
+                            maxLines: 1,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
               ),
             ),
           ),
