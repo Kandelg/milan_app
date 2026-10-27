@@ -1,100 +1,84 @@
-# Milan — Flutter + Supabase डेटिङ/म्याचिङ एप
+# 📱 Milan App
 
-एउटै कोडबाट **Android, iOS र Web** तीनवटै प्लेटफर्ममा चल्ने म्याचिङ एपको MVP।
+A modern, architecture-driven cross-platform mobile application built with **Flutter**, powered by **Riverpod** for production-grade state management, and backed by **Supabase** for secure, real-time backend infrastructure.
 
-```
+---
+
+## 🏛️ Architecture & Core Philosophy
+
+The codebase is engineered using a hybrid **Feature-First and Layered Architecture**. By decoupling the presentation layer from backend repositories, the system ensures high scalability, absolute isolated testing, and effortless feature onboarding.
+
+* **Clean State Management:** Leverages Riverpod providers to cleanly expose immutable reactive data streams to the UI.
+* **Robust Backend Security:** Relies on Supabase Server-Side Row-Level Security (RLS) policies and explicit Remote Procedure Calls (RPC) to prevent unauthorized database updates.
+
+---
+
+## 📂 Professional Repository Structure
+
+```text
 milan_app/
 ├── lib/
-│   ├── main.dart                  # entry point (Supabase init)
-│   ├── app/                       # root widget + go_router routes
-│   ├── core/                      # theme, shared widgets, constants
-│   ├── data/
-│   │   ├── models.dart            # Profile, Match, Message, SwipeDirection
-│   │   ├── *_repository.dart      # auth / profile / discover / match / storage
-│   │   └── providers.dart         # Riverpod providers
-│   └── features/                  # feature-first UI
-│       ├── auth/   splash/  onboarding/
-│       ├── discover/  matches/  chat/  profile/  shell/
+│   ├── main.dart                  # Application entry point & Supabase client initialization
+│   ├── app/                       # Global root widget config & central declarative GoRouter definition
+│   ├── core/                      # Application-wide styles, custom themes, shared UI widgets, and constants
+│   ├── data/                      # Global Data Layer (The source of absolute truth)
+│   │   ├── models.dart            # Immutable functional data schemas (Profile, Match, Message, SwipeDirection)
+│   │   ├── *_repository.dart      # Business layer API bridges (Auth, Profile, Discover, Match, Cloud Storage)
+│   │   └── providers.dart         # Globally accessible Riverpod dependency injection definitions
+│   └── features/                  # UI Presentation Layer (Modularity driven by concrete business domains)
+│       ├── auth/                  # Secure user authentication flow management
+│       ├── splash/                # Cold-start visual experience and active session check logic
+│       ├── onboarding/            # Dynamic registration profile configuration and metadata ingestion
+│       ├── discover/              # Swipe deck interfaces, geolocation streams, and profiles ranking
+│       ├── matches/               # Two-way reciprocal match listing and historical logging
+│       ├── chat/                  # Real-time WebSocket messaging and reactive database listeners
+│       ├── profile/               # In-app user settings, privacy toggles, and live DB visibility update dashboards
+│       └── shell/                 # Bottom navigation persistent layout structures
 ├── supabase/
-│   └── schema.sql                 # tables + RLS + RPC + storage
-├── test/                          # unit tests
-└── env.example.json               # copy to env.json
+│   └── schema.sql                 # Complete database structure, strict RLS triggers, indexes, and custom RPC scripts
+├── test/                          # Comprehensive standalone component and repository system tests
+└── env.example.json               # Environment configuration blueprint (Duplicate to env.json locally)
 ```
 
-## १. Supabase सेटअप
+---
 
-1. [supabase.com](https://supabase.com) मा नयाँ प्रोजेक्ट बनाउनुहोस्।
-2. Dashboard → **SQL Editor** → `supabase/schema.sql` को पूरा सामग्री paste गरेर **Run** गर्नुहोस्।
-   यसले बनाउँछ:
-   - `profiles`, `swipes`, `matches`, `messages` टेबल
-   - Row Level Security नीति (हरेक प्रयोगकर्ता आफ्नै डाटा मात्र)
-   - `discover_profiles()` र `record_swipe()` फङ्सन
-   - `matches_with_details` view (च्याट लिस्टको लागि)
-   - `profile-photos` स्टोरेज बकेट + नीति
-3. Dashboard → **Authentication → Providers** मा Email provider सक्रिय छ भनी निश्चित गर्नुहोस्।
-   (सुरुमा "Confirm email" बन्द राख्नुहोस् भने तुरन्तै लगइन हुन्छ।)
-4. Project Settings → **API** बाट `URL` र `anon/publishable key` लिनुहोस्।
+## 🛠️ Infrastructure & Tech Stack
 
-पहिले नै चलिरहेको Supabase project मा onboarding profile का नयाँ fields थप्न
-Dashboard → **SQL Editor** मा `supabase/profile_onboarding_columns_migration.sql`
-चलाउनुहोस्। नयाँ project मा भने माथिको `supabase/schema.sql` पर्याप्त छ।
+| Component | Technical Framework | Purpose within Project |
+| :--- | :--- | :--- |
+| **Frontend Core** | **Flutter & Dart** | Cross-platform execution with smooth 60fps UI processing. |
+| **State Machinery** | **Riverpod** | Decoupled dependency injection, predictable asynchronous states. |
+| **Routing Engine** | **GoRouter** | Type-safe declarative URL-based application navigation workflows. |
+| **Backend & Realtime** | **Supabase** | PostgreSQL core, identity management, raw DB storage hooks. |
+| **Security Layer** | **PostgreSQL RLS** | Server-side validation enforcing total account data isolation. |
 
-## २. एप चलाउने तरिका
+---
 
-```bash
-# १) क्रेडेन्सियल फाइल बनाउनुहोस्
-cp env.example.json env.json
-#    त्यसपछि env.json मा आफ्नो URL र key राख्नुहोस् (Git मा जाँदैन)
+## 🚀 Local Environment Installation Guide
 
-# २) प्याकेज इन्स्टल
-flutter pub get
+Follow these steps to safely initialize the runtime code footprint on your local workstation:
 
-# ३.१) Chrome मा (web)
-flutter run -d chrome --dart-define-from-file=env.json
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com
+   cd milan_app
+   ```
 
-# ३.२) Android / iOS
-flutter run --dart-define-from-file=env.json
+2. **Configure Client Credentials:**
+   Copy the reference credentials configuration layout to initialize your local config:
+   ```bash
+   cp env.example.json env.json
+   ```
+   *Open `env.json` and insert your authentic Supabase URL and corresponding `anon` public key hashes.*
 
-# ३.३) रिलिज APK
-flutter build apk --release --dart-define-from-file=env.json
-```
+3. **Synchronize Dependencies:**
+   Pull downstream package components from the centralized pub network:
+   ```bash
+   flutter pub get
+   ```
 
-> **नोट:** VS Code मा **Milan App (with Supabase) - USE THIS** launch configuration
-> चयन गर्नुहोस्। यसले `env.json` बाट compile-time credentials स्वतः पठाउँछ.
-> Terminal बाट चलाउँदा पनि माथिका commands मा `--dart-define-from-file=env.json`
-> राख्नुहोस्। यो flag नदिँदा app लाई Supabase credentials उपलब्ध हुँदैनन्।
-
-## ३. परीक्षण
-
-```bash
-flutter analyze     # स्थिर विश्लेषण — "No issues found"
-flutter test        # १९ unit test
-```
-
-## ४. हालका फिचरहरू (MVP)
-
-| फिचर | विवरण |
-|---|---|
-| Authentication | Email + password, sign up, password reset |
-| Onboarding | ४ चरण: नाम/लिङ्ग → जन्म मिति (१८+) → फोटो → बायो/रुचि |
-| Discover | Tinder-जस्तै स्वाइप, उमेर/लिङ्ग/सहर/रुचि फिल्टर, undo |
-| Matching | दुईतर्फी like मिलेपछि स्वतः match + सेलिब्रेसन डायलग |
-| Chat | Realtime सन्देश, unread ब्याज, unmatch |
-| Profile | आफ्नो प्रोफाइल हेर्ने, सम्पादन, logout |
-
-## ५. सुरक्षा
-
-- सबै टेबलमा **Row Level Security** सक्रिय; हरेक नीति `auth.uid()` मा आधारित।
-- फोटो `<userId>/…` फोल्डरमा मात्र अपलोड सकिन्छ (`storage.foldername` जाँच)।
-- `record_swipe()` `security definer` — म्याच निर्णय DB मै हुन्छ, क्लायन्टमा होइन।
-- कुनै पनि key `env.json` (Git ignore) मा रहन्छ।
-
-## ६. अघि बढाउने क्रम
-
-- [ ] ब्लक / रिपोर्ट
-- [ ] Push notification (Firebase)
-- [ ] Super like (स्वाइप मा अहिले UI मात्र छ)
-- [ ] फोटो verification
-- [ ] Multi-photo gallery in chat
-- [ ] नेपाली/अंग्रेजी भाषा टगल
-"# milan_app" 
+4. **Execute App Compilation:**
+   Launch the system inside your active emulator target environment:
+   ```bash
+   flutter run
+   ```
